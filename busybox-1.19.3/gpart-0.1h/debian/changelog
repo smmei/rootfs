@@ -1,0 +1,198 @@
+gpart (0.1h-11) unstable; urgency=low
+
+  * Minimizing rules file.
+  * Adding forgotton seperator in build target of rules.
+  * Setting uploaders to Christophe.
+
+ -- Daniel Baumann <daniel@debian.org>  Wed, 29 Jul 2009 21:14:51 +0200
+
+gpart (0.1h-10) unstable; urgency=low
+
+  * Updating package to standards version 3.8.2.
+  * Adding lintian overrides.
+
+ -- Daniel Baumann <daniel@debian.org>  Thu, 09 Jul 2009 11:56:58 +0200
+
+gpart (0.1h-9) unstable; urgency=low
+
+  * Adding patch from Josef Spillner <2005@kuarepoti-dju.net> to add
+    support for image files.
+
+ -- Daniel Baumann <daniel@debian.org>  Sat, 30 May 2009 20:17:59 +0200
+
+gpart (0.1h-8) unstable; urgency=low
+
+  * Prefixing debhelper files with package name.
+  * Using correct rfc-2822 date formats in changelog.
+  * Upgrading package to standards 3.8.1.
+  * Updating year in copyright.
+  * Tidy rules file.
+  * Using quilt rather than dpatch.
+
+ -- Daniel Baumann <daniel@debian.org>  Thu, 28 May 2009 21:21:14 +0200
+
+gpart (0.1h-7) unstable; urgency=low
+
+  [ Daniel Baumann ]
+  * Replacing obsolete dh_clean -k with dh_prep.
+
+  [ Christophe Monniez ]
+  * Adding patch from James Westby to fix a call to open without
+    specifying a mode (Closes: #506816).
+
+  [ Daniel Baumann ]
+  * Actually adding the file 03-open-mode.dpatch.
+
+ -- Daniel Baumann <daniel@debian.org>  Tue, 25 Nov 2008 08:35:00 +0100
+
+gpart (0.1h-6) unstable; urgency=low
+
+  * Using patch-stamp rather than patch in rules file.
+  * Adding patch from Trace Green <debian.y.h.xu@gmail.com> to add support for
+    NTFS of Windows XP (Closes: #474321).
+
+ -- Daniel Baumann <daniel@debian.org>  Thu, 06 Nov 2008 16:23:00 +0100
+
+gpart (0.1h-5) unstable; urgency=low
+
+  * New maintainer (Closes: #487731).
+  * Removing useless whitespaces at EOL and EOF in all debian files.
+  * Reverting debian changes to upstream, using dpatch to modify upstream.
+  * Upgrading package to debhelper 7.
+  * Upgrading package to standards 3.8.0.
+  * Adding homepage field in control file.
+  * Adding vcs fields in control file.
+  * Sorting fields in control file.
+  * Adding ${misc:Depends} to depends.
+  * Rewrapping package long-description in control file.
+  * Rewriting copyright file in machine-interpretable format.
+  * Removing not usefull README.Debian.
+  * Removing not usefull TODO.Debian.
+  * Updating author email address in copyright file.
+  * Removing not usefull LSM file from docs debhelper file.
+  * Removing patch left-over in debian directory.
+  * Rewriting rules file from scratch.
+  * Removing unused dirs debhelper file.
+
+ -- Daniel Baumann <daniel@debian.org>  Fri, 19 Sep 2008 08:39:00 +0200
+
+gpart (0.1h-4.1) unstable; urgency=medium
+
+  * NMU from the Cambridge BSP
+  * Rather than attempt to use the syscall(!) interface for 64-bit lseek,
+    simply compile to use the 64-bit VFS interface and use the normal
+    lseek calls. Let libc deal with the issues...
+    Closes: #225578, #294836, #393039.
+  * Applied the reiserfs 3.6 recognition patch from
+    ftp://ftp.namesys.com/pub/misc-patches/gpart-0.1h-reiserfs-3.6.patch.gz
+    Closes: #246989, #322256
+  * Recogniise ext3 filesystems as well as ext2. Thanks to Xisco Calafat
+    for the patch. Closes: #212989
+
+ -- Steve McIntyre <93sam@debian.org>  Sat, 28 Oct 2006 22:50:42 +0100
+
+gpart (0.1h-4) unstable; urgency=low
+
+  * recompile to resolve errno problem; no changes required
+    Closes: #225018: gpart binary is incorrectly built
+  * debian standards 3.5.10:
+    - support DEB_BUILD_OPTIONS "noopt"
+
+ -- David Coe <davidc@debian.org>  Thu, 25 Dec 2003 01:31:30 -0500
+
+gpart (0.1h-3) unstable; urgency=low
+
+  * corrected punctuation in package description
+    Closes: #124692: Spelling error in description
+
+ -- David Coe <davidc@debian.org>  Mon, 17 Dec 2001 21:06:11 -0500
+
+gpart (0.1h-2) unstable; urgency=low
+
+  * moved Build-Depends to the right place
+  Closes: #119348: malformed debian/control
+  * patched to build on ia64 (and others), thanks to Doug Porter
+    <dsp@debian.org>, and changed to Architecture: any.
+  Closes: #119347: fix to build on ia64
+  * standards version now 3.5.6; no changes needed.
+
+ -- David Coe <davidc@debian.org>  Sun, 25 Nov 2001 23:08:43 -0500
+
+gpart (0.1h-1) unstable; urgency=low
+
+  * new upstream version:
+    v0.1h
+     - New support for BeOS, QNX 4.x & SGI XFS filesystems.
+     - Updated Reiser filesystem support.
+     - Updated LVM support.
+     - Several small fixes from contributors.
+    v0.1g
+     - For access via raw devices: made writing of guessed table also
+       aligned (reading has been aligned since 0.1f).
+     - Fixed stupid copy&paste bug in the partition table check routine.
+    Closes: #66894 "crashes immediately on Alpha [includes patch]
+    (the suggested patch was applied upstream)
+    Closes: #85151 "New upstream version available"
+  * patched gm_fat.h as suggested by Falk Hueffner <falk@debian.org>
+    Closes: #66893 "FAT detection broken on Alpha"
+  * debian standards 3.5.2 (support for DEB_BUILD_OPTIONS)
+
+ -- David Coe <david.coe@someotherplace.org>  Sat, 24 Feb 2001 21:01:33 -0500
+
+gpart (0.1f-1) frozen unstable; urgency=medium
+
+  * new upstream version:
+    - Default scan increment is 'h' [head] again.
+    - Fixed wrong head-boundary condition.  closes: #59147
+    - Introduced possibility to edit guessed partitions.
+    - Scan now starts on (sectors/head) unless -k <start> was given.
+    - Length of guessed NTFS partitions now includes NTFS backup boot
+      sector created by NT4.
+
+ -- David Coe <david.coe@someotherplace.org>  Sun, 27 Feb 2000 22:02:45 -0500
+
+gpart (0.1e-2) frozen unstable; urgency=low
+
+  * added ARM architecture, thanks to Philip Blundell; closes: #58395
+
+ -- David Coe <david.coe@someotherplace.org>  Fri, 18 Feb 2000 13:24:35 -0500
+
+gpart (0.1e-1) unstable; urgency=low
+
+  * new upstream version:
+    - Default scan increment now 's', extended partition table boundary
+      condition now depends on scan increment (head if 's', else cylinder
+      boundary).
+    - Added LVM physical volume module (LVM by Heinz Mauelshagen).
+  * Debian change to "Architecture: alpha i386", until upstream resolves
+    endianness and other architecture differences (closes: #46101);
+    forwarded various architecture/endianness suggestions upstream.
+  * Also improved upstream:
+    - A more detailed README.
+  * revised the man page (improved wording, format), at upstream
+    author's request; sent changes upstream.
+  * added TODO.Debian
+  * finished FHS transition; docs are now in /usr/share/doc/ with
+    appropriate compatibility symlink, thanks to debhelper.
+
+ -- David Coe <david.coe@someotherplace.org>  Sun, 07 Nov 1999 04:18:14 +0000
+
+gpart (0.1d-1) unstable; urgency=low
+
+  * new upstream version
+  * changed for debian standards 3.0.1 and FHS (except for /usr/doc)
+
+ -- David L. Coe <david.coe@someotherplace.org>  Fri, 20 Aug 1999 04:26:15 +0000
+
+gpart (0.1c-2) unstable; urgency=low
+
+  * install into /sbin rather than /usr/sbin (as explained in README.Debian)
+  * improved description
+
+ -- David L. Coe <david.coe@someotherplace.org>  Tue, 01 Jun 1999 02:49:55 +0000
+
+gpart (0.1c-1) unstable; urgency=low
+
+  * initial debianization
+
+ -- David L. Coe <david.coe@someotherplace.org>  Fri, 28 May 1999 22:49:11 +0000

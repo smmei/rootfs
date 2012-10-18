@@ -1,0 +1,41 @@
+#! /bin/sh
+
+mkdir -p /proc /usr /sys /tmp /dev/snd
+mount -a
+echo /sbin/mdev > /proc/sys/kernel/hotplug
+/sbin/mdev -s
+
+# mknod /dev/fb0 c 29 0
+# mknod /dev/fb1 c 29 1
+# mknod /dev/fb2 c 29 2
+# 
+ mknod /dev/snd/controlC0 c 116 0
+ mknod /dev/snd/controlC1 c 116 32
+ mknod /dev/snd/pcmC0D0c  c 116 24
+ mknod /dev/snd/pcmC0D0p  c 116 16
+ mknod /dev/snd/pcmC1D0p  c 116 48
+ mknod /dev/snd/timer     c 116 33
+# 
+# mknod /dev/rtc0 c 254 0
+# 
+# mknod /dev/event0 c 13 64
+# mknod /dev/event1 c 13 65
+# mknod /dev/event2 c 13 66
+# mknod /dev/event3 c 13 67
+# 
+# mknod /dev/tty0 c 4 0
+# mknod /dev/tty1 c 4 1
+# mknod /dev/tty2 c 4 2
+# mknod /dev/tty3 c 4 3
+# mknod /dev/tty4 c 4 4
+# mknod /dev/tty5 c 4 5
+rm /dev/null
+mknod /dev/null c 1 3 
+#mkdir /data/selftest/sd_test
+#mkdir /data/selftest/emmc_test
+mkdir /lib/modules/`uname -r`
+
+/etc/alsa.sh
+selftest&
+exit 0
+

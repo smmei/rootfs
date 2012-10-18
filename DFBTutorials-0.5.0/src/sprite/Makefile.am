@@ -1,0 +1,7 @@
+AM_CPPFLAGS = -DDATADIR=\"@DATADIR@\"
+INCLUDES = @DIRECTFB_CFLAGS@
+LDADD = @DIRECTFB_LIBS@
+
+noinst_PROGRAMS = sprite
+
+sprite_SOURCES = sprite.c

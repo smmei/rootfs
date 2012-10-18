@@ -1,0 +1,35 @@
+DirectFB Tutorials
+------------------
+
+This package holds documented code examples that teach you the basics
+of DirectFB programming and should help you to get accustomed to the
+DirectFB API. The docs/html directory has a HTML-formatted tutorial.
+
+
+If you want to build the code examples or rebuild the HTML pages, you
+need to have DirectFB and pkg-config installed. DirectFB is available
+from http://www.directfb.org/. If you don't already have pkg-config
+installed get it from http://www.freedesktop.org/software/pkgconfig/.
+Once all requirements are successfully installed, you simply need to
+type
+
+ ./configure
+ make
+
+The file INSTALL has more generic instruction on how to use the
+configure script and make.
+
+
+You should then find the HTML documentation in the directory docs/html.
+The examples are built in subdirectories of the src directory:
+
+ simple    - Simple initialization and drawing example for a
+             full-screen application.
+
+ image     - Image loading and displaying.
+
+ text      - Drawing text.
+
+ sprite    - Moving a sprite with the cursor keys.
+
+ keybuffer - Key-buffer and simple alpha-channel example.

@@ -1,0 +1,44 @@
+Source: gpart
+Section: admin
+Priority: optional
+Maintainer: Debian Forensics <forensics-devel@lists.alioth.debian.org>
+Uploaders: Christophe Monniez <christophe.monniez@fccu.be>
+Build-Depends: debhelper (>= 7), quilt
+Standards-Version: 3.8.2
+Homepage: http://home.pages.de/~michab/gpart/
+Vcs-Browser: http://git.debian.net/?p=debian-forensics/gpart.git
+Vcs-Git: git://git.debian.net/git/debian-forensics/gpart.git
+
+Package: gpart
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Guess PC disk partition table, find lost partitions
+ Gpart is a tool which tries to guess the primary partition table of a PC-type
+ disk in case the primary partition table in sector 0 is damaged, incorrect or
+ deleted.
+ .
+ It is also good at finding and listing the types, locations, and sizes of
+ inadvertently-deleted partitions, both primary and logical. It gives you the
+ information you need to manually re-create them (using fdisk, cfdisk, sfdisk,
+ etc.).
+ .
+ The guessed table can also be written to a file or (if you firmly believe the
+ guessed table is entirely correct) directly to a disk device.
+ .
+ Currently supported (guessable) filesystem or partition types:
+ .
+  * BeOS filesystem type.
+  * FreeBSD/NetBSD/386BSD disklabel sub-partitioning scheme used on Intel
+    platforms.
+  * Linux second extended filesystem.
+  * MS-DOS FAT12/16/32 "filesystems".
+  * IBM OS/2 High Performance filesystem.
+  * Linux LVM physical volumes (LVM by Heinz Mauelshagen).
+  * Linux swap partitions (versions 0 and 1).
+  * The Minix operating system filesystem type.
+  * MS Windows NT/2000 filesystem.
+  * QNX 4.x filesystem.
+  * The Reiser filesystem (version 3.5.X, X > 11).
+  * Sun Solaris on Intel platforms uses a sub-partitioning scheme on PC hard
+    disks similar to the BSD disklabels.
+  * Silicon Graphics' journalling filesystem for Linux.

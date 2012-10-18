@@ -1,0 +1,535 @@
+Author: n/a
+Description: Needs to be broken out (FIXME).
+
+diff -Naurp gpart.orig/Makefile gpart/Makefile
+--- gpart.orig/Makefile	2000-12-13 22:45:49.000000000 +0000
++++ gpart/Makefile	2008-09-19 06:13:18.000000000 +0000
+@@ -10,8 +10,12 @@ gpart:
+ 	$(MAKE) -C src
+ 	$(MAKE) -C man
+ 
+-install:
++install: install-object install-man
++
++install-object:
+ 	$(MAKE) -C src install
++
++install-man:
+ 	$(MAKE) -C man install
+ 
+ uninstall:
+@@ -21,3 +25,5 @@ uninstall:
+ clean:
+ 	$(MAKE) -C src clean
+ 	$(MAKE) -C man clean
++
++.PHONY: all gpart install install-object install-man uninstall clean
+diff -Naurp gpart.orig/README gpart/README
+--- gpart.orig/README	2001-02-07 17:58:12.000000000 +0000
++++ gpart/README	2008-09-19 06:13:18.000000000 +0000
+@@ -24,25 +24,25 @@
+ 
+  - Currently recognized partitions/filesystems types ---------------------
+ 
+-   Modname Typ   Description
+-   fat     0x01  "Primary DOS with 12 bit FAT"
+-           0x04  "Primary DOS with 16 bit FAT (<= 32MB)"
+-           0x06  "Primary 'big' DOS (> 32MB)"
+-           0x0B  "DOS or Windows 95 with 32 bit FAT"
+-           0x0C  "DOS or Windows 95 with 32 bit FAT, LBA"
+-   ntfs    0x07  "OS/2 HPFS, NTFS, QNX or Advanced UNIX"
+-   hpfs    0x07  "OS/2 HPFS, NTFS, QNX or Advanced UNIX"
+-   ext2    0x83  "Linux ext2 filesystem"
+-   lswap   0x82  "Linux swap"
+-   bsddl   0xA5  "FreeBSD/NetBSD/386BSD"
+-   s86dl   0x82  "Solaris/x86 disklabel"
+-   minix   0x80  "Minix V1"
+-           0x81  "Minix V2"
+-   rfs     0x83  "Reiser filesystem"
+-   hmlvm   0xFE  "Linux LVM physical volumes"
+-   qnx4    0x4F  "QNX 4.x"
+-   beos    0xEB  "BeOS fs"
+-   xfs     0x83  "SGI XFS filesystem"
++   Modname  Typ   Description
++   fat      0x01  "Primary DOS with 12 bit FAT"
++    	    0x04  "Primary DOS with 16 bit FAT (<= 32MB)"
++            0x06  "Primary 'big' DOS (> 32MB)"
++            0x0B  "DOS or Windows 95 with 32 bit FAT"
++            0x0C  "DOS or Windows 95 with 32 bit FAT, LBA"
++   ntfs     0x07  "OS/2 HPFS, NTFS, QNX or Advanced UNIX"
++   hpfs     0x07  "OS/2 HPFS, NTFS, QNX or Advanced UNIX"
++   ext2     0x83  "Linux ext2 filesystem"
++   lswap    0x82  "Linux swap"
++   bsddl    0xA5  "FreeBSD/NetBSD/386BSD"
++   s86dl    0x82  "Solaris/x86 disklabel"
++   minix    0x80  "Minix V1"
++            0x81  "Minix V2"
++   reiserfs 0x83  "ReiserFS filesystem"
++   hmlvm    0xFE  "Linux LVM physical volumes"
++   qnx4     0x4F  "QNX 4.x"
++   beos     0xEB  "BeOS fs"
++   xfs      0x83  "SGI XFS filesystem"
+ 
+ 
+ 
+diff -Naurp gpart.orig/inst.defs gpart/inst.defs
+--- gpart.orig/inst.defs	2000-12-13 22:45:49.000000000 +0000
++++ gpart/inst.defs	2008-09-19 06:13:18.000000000 +0000
+@@ -1,9 +1,23 @@
+ #
+ # installation directories for gpart
+ #
+-prefix=/usr/local
+-bindir=$(prefix)/bin
+-libdir=$(prefix)/lib
+-mandir=$(prefix)/man
++
++# Added by D. Coe for Debian GNU/Linux:
++DESTDIR =
++
++# Changed by D. Coe for Debian GNU/Linux:
++#prefix=/usr/local
++prefix=$(DESTDIR)
++
++# Changed by D. Coe for Debian GNU/Linux:
++# Install into sbin rather than bin
++bindir=$(prefix)/sbin
++
++# Not used -D. Coe:
++#libdir=$(prefix)/lib
++
++mandir=$(prefix)/usr/share/man
+ manext=8
+-sharedir=$(prefix)/share
++
++# Not used -D. Coe:
++#sharedir=$(prefix)/share
+diff -Naurp gpart.orig/man/gpart.man gpart/man/gpart.man
+--- gpart.orig/man/gpart.man	2001-02-07 17:54:18.000000000 +0000
++++ gpart/man/gpart.man	2008-09-19 06:13:18.000000000 +0000
+@@ -63,8 +63,8 @@ MS Windows NT/2000 filesystem.
+ .I qnx4
+ QNX 4.x filesystem.
+ .TP
+-.I rfs
+-The Reiser filesystem (version 3.5.X, X > 11).
++.I reiserfs
++The Reiser filesystem (version 3.5.X, X > 11, 3.6.X).
+ .TP
+ .I s86dl
+ Sun Solaris on Intel platforms uses a sub-partitioning
+diff -Naurp gpart.orig/src/Makefile gpart/src/Makefile
+--- gpart.orig/src/Makefile	2001-01-30 17:01:08.000000000 +0000
++++ gpart/src/Makefile	2008-09-19 06:13:18.000000000 +0000
+@@ -7,6 +7,8 @@ include ../make.defs
+ CFLAGS+=-DVERSION=\"$(version)\"
+ ifeq ($(shell uname),Linux)
+ LIBS=-ldl
++CFLAGS += -D__USE_FILE_OFFSET64 -D__USE_LARGEFILE64
++CFLAGS += -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+ endif
+ 
+ ifdef DEBUG
+@@ -19,7 +21,7 @@ CFLAGS+=-DGPART_LANG=\'$(GPART_LANG)\'
+ endif
+ 
+ 
+-mod=ext2 lswap fat bsddl ntfs hpfs s86dl minix rfs hmlvm qnx4 beos xfs
++mod=ext2 lswap fat bsddl ntfs hpfs s86dl minix reiserfs hmlvm qnx4 beos xfs
+ modobj=$(foreach m,$(mod),gm_$(m).o)
+ obj=gpart.o gmodules.o disku.o l64seek.o $(modobj)
+ src=$(obj:.o=.c)
+diff -Naurp gpart.orig/src/disku.c gpart/src/disku.c
+--- gpart.orig/src/disku.c	2001-02-07 19:04:07.000000000 +0000
++++ gpart/src/disku.c	2008-09-19 06:13:18.000000000 +0000
+@@ -19,6 +19,7 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <sys/ioctl.h>
++#include <errno.h>
+ #include "gpart.h"
+ 
+ #if defined(__linux__)
+diff -Naurp gpart.orig/src/gm_ext2.c gpart/src/gm_ext2.c
+--- gpart.orig/src/gm_ext2.c	2001-02-07 18:08:08.000000000 +0000
++++ gpart/src/gm_ext2.c	2008-09-19 06:13:18.000000000 +0000
+@@ -121,9 +121,10 @@ int ext2_gfun(disk_desc *d,g_module *m)
+ 
+ 	/*
+ 	 * current mount count shouldn't be greater than max+20
++	 * but ext3 usually has s_max_mnt_count==-1
+ 	 */
+ 
+-	if (sb->s_mnt_count > sb->s_max_mnt_count + 20)
++	if ((sb->s_max_mnt_count!=-1)&&(sb->s_mnt_count > sb->s_max_mnt_count + 20))
+ 		return (1);
+ 
+ 	/*
+diff -Naurp gpart.orig/src/gm_fat.h gpart/src/gm_fat.h
+--- gpart.orig/src/gm_fat.h	2000-12-13 22:54:51.000000000 +0000
++++ gpart/src/gm_fat.h	2008-09-19 06:13:18.000000000 +0000
+@@ -60,6 +60,10 @@ struct fat_boot_sector {
+ 	__u16	info_sector;	/* filesystem info sector */
+ 	__u16	backup_boot;	/* backup boot sector */
+ 	__u16	reserved2[6];	/* Unused */
+-};
+-
++} __attribute__ ((packed));
++/*  "__attribute__ ((packed))" 
++    added by davidc@debian.org,
++    as suggested by falk@zxmjz18.extern.uni-tuebingen.de 
++    Fri Jul 07 18:04:15 2000
++    in debian bug report #66893 "FAT detection broken on Alpha" */
+ #endif /* _GM_FAT_H */
+diff -Naurp gpart.orig/src/gm_ntfs.h gpart/src/gm_ntfs.h
+--- gpart.orig/src/gm_ntfs.h	2001-01-29 20:33:58.000000000 +0000
++++ gpart/src/gm_ntfs.h	2008-09-19 06:13:18.000000000 +0000
+@@ -14,6 +14,9 @@
+  *
+  */
+ 
++#include <stdint.h>
++#include <asm/byteorder.h>
++
+ #ifndef _GM_NTFS_H
+ #define _GM_NTFS_H
+ 
+@@ -29,32 +32,38 @@
+ /* 'NTFS' in little endian */
+ #define NTFS_SUPER_MAGIC	0x5346544E
+ 
+-#if defined(i386) || defined(__i386__) || defined(__alpha__)
+-
+ /* unsigned integral types */
+ #ifndef NTFS_INTEGRAL_TYPES
+ #define NTFS_INTEGRAL_TYPES
+-typedef unsigned char		ntfs_u8;
+-typedef unsigned short		ntfs_u16;
+-typedef unsigned int		ntfs_u32;
+-typedef s64_t			ntfs_u64;
++typedef uint8_t			ntfs_u8;
++typedef uint16_t		ntfs_u16;
++typedef uint32_t		ntfs_u32;
++typedef uint64_t		ntfs_u64;
++typedef int8_t			ntfs_s8;
++typedef int16_t			ntfs_s16;
+ #endif /* NTFS_INTEGRAL_TYPES */
+-#endif /* defined(i386) || defined(__i386__) || defined(__alpha__) */
+-
+-
+-/* Macros reading unsigned integers from a byte pointer */
+-/* these should work for all little endian machines */
+-#define NTFS_GETU8(p)		(*(ntfs_u8*)(p))
+-#define NTFS_GETU16(p)		(*(ntfs_u16*)(p))
+-#define NTFS_GETU24(p)		(NTFS_GETU32(p) & 0xFFFFFF)
+-#define NTFS_GETU32(p)		(*(ntfs_u32*)(p))
+-#define NTFS_GETU64(p)		(*(ntfs_u64*)(p))
+-
+-/* Macros reading signed integers, returning int */
+-#define NTFS_GETS8(p)		((int)(*(char*)(p)))
+-#define NTFS_GETS16(p)		((int)(*(short*)(p)))
+-#define NTFS_GETS24(p)		(NTFS_GETU24(p) < 0x800000 ? (int)NTFS_GETU24(p) :
+-
+ 
++#define CPU_TO_LE16(a) __cpu_to_le16(a)
++#define CPU_TO_LE32(a) __cpu_to_le32(a)
++#define CPU_TO_LE64(a) __cpu_to_le64(a)
++
++#define LE16_TO_CPU(a) __cpu_to_le16(a)
++#define LE32_TO_CPU(a) __cpu_to_le32(a)
++#define LE64_TO_CPU(a) __cpu_to_le64(a)
++
++/* Macros reading unsigned integers */
++#define NTFS_GETU8(p)      (*(ntfs_u8*)(p))
++#define NTFS_GETU16(p)     ((ntfs_u16)LE16_TO_CPU(*(ntfs_u16*)(p)))
++#define NTFS_GETU24(p)     ((ntfs_u32)NTFS_GETU16(p) | \
++		           ((ntfs_u32)NTFS_GETU8(((char*)(p)) + 2) << 16))
++#define NTFS_GETU32(p)     ((ntfs_u32)LE32_TO_CPU(*(ntfs_u32*)(p)))
++#define NTFS_GETU64(p)     ((ntfs_u64)LE64_TO_CPU(*(ntfs_u64*)(p)))
++
++/* Macros reading signed integers */
++#define NTFS_GETS8(p)        ((*(ntfs_s8*)(p)))
++#define NTFS_GETS16(p)       ((ntfs_s16)LE16_TO_CPU(*(short*)(p)))
++#define NTFS_GETS24(p)       (NTFS_GETU24(p) < 0x800000 ? \
++	                                (int)NTFS_GETU24(p) : \
++					(int)(NTFS_GETU24(p) - 0x1000000))
+ 
+ #endif /* _GM_NTFS_H */
+diff -Naurp gpart.orig/src/gm_reiserfs.c gpart/src/gm_reiserfs.c
+--- gpart.orig/src/gm_reiserfs.c	1970-01-01 00:00:00.000000000 +0000
++++ gpart/src/gm_reiserfs.c	2008-09-19 06:13:18.000000000 +0000
+@@ -0,0 +1,91 @@
++/*      
++ * gm_reiserfs.c -- gpart ReiserFS guessing module
++ *
++ * gpart (c) 1999-2001 Michail Brzitwa <mb@ichabod.han.de>
++ * Guess PC-type hard disk partitions.
++ *
++ * gpart is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; either version 2, or (at your
++ * option) any later version.
++ *
++ * Created:   21.01.1999 <mb@ichabod.han.de>
++ * Modified:  26.12.2000 Francis Devereux <francis@devereux.tc>
++ *            Added reiserfs 3.5.28 support.
++ * Modified:  10.01.2003 Yury Umanets <umka@namesys.com>
++ *            Added reiserfs 3.6.x support.
++ *
++ */
++
++#include <string.h>
++#include <errno.h>
++#include "gpart.h"
++#include "gm_reiserfs.h"
++
++static const char	rcsid[] = "$Id: gm_reiserfs.c,v 1.5 2003/01/10 16:38:08 mb Exp mb $";
++
++
++int reiserfs_init(disk_desc *d,g_module *m)
++{
++	if ((d == 0) || (m == 0))
++		return (0);
++
++	m->m_desc = "ReiserFS filesystem";
++	return (REISERFS_FIRST_BLOCK * 1024 + SB_V35_SIZE);
++}
++
++
++
++int reiserfs_term(disk_desc *d)
++{
++	return (1);
++}
++
++
++
++int reiserfs_gfun(disk_desc *d,g_module *m)
++{
++	struct reiserfs_super_block_v35	*sb;
++	dos_part_entry			*pt = &m->m_part;
++	s64_t				size;
++
++	m->m_guess = GM_NO;
++	sb = (struct reiserfs_super_blockv35 *)(d->d_sbuf + REISERFS_FIRST_BLOCK * 1024);
++	if (strncmp(sb->s_magic,REISERFS_SUPER_V35_MAGIC,12) == 0 || 
++	    strncmp(sb->s_magic,REISERFS_SUPER_V36_MAGIC,12) == 0)
++	{
++		/*
++		 * sanity checks.
++		 */
++
++		if (sb->s_block_count < sb->s_free_blocks)
++			return (1);
++
++		if (sb->s_block_count < REISERFS_MIN_BLOCK_AMOUNT)
++			return (1);
++
++		if ((sb->s_state != REISERFS_VALID_FS) &&
++		    (sb->s_state != REISERFS_ERROR_FS))
++			return (1);
++
++		if (sb->s_oid_maxsize % 2) /* must be even */
++			return (1);
++
++		if (sb->s_oid_maxsize < sb->s_oid_cursize)
++			return (1);
++
++		if ((sb->s_blocksize != 4096) && (sb->s_blocksize != 8192))
++			return (1);
++
++		/*
++		 * ok.
++		 */
++
++		m->m_guess = GM_YES;
++		pt->p_start = d->d_nsb;
++		size = sb->s_block_count; size *= sb->s_blocksize; size /= d->d_ssize;
++		pt->p_size = (unsigned long)size;
++		pt->p_typ = 0x83;
++	}
++	return (1);
++}
+diff -Naurp gpart.orig/src/gm_reiserfs.h gpart/src/gm_reiserfs.h
+--- gpart.orig/src/gm_reiserfs.h	1970-01-01 00:00:00.000000000 +0000
++++ gpart/src/gm_reiserfs.h	2008-09-19 06:13:18.000000000 +0000
+@@ -0,0 +1,82 @@
++/*
++ * gm_reiserfs.h -- gpart ReiserFS guessing module header
++ * 
++ * gpart (c) 1999-2001 Michail Brzitwa <mb@ichabod.han.de>
++ * Guess PC-type hard disk partitions.
++ *
++ * gpart is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; either version 2, or (at your
++ * option) any later version.
++ *
++ * Created:   21.01.1999 <mb@ichabod.han.de>
++ * Modified:  26.12.2000 Francis Devereux <francis@devereux.tc>
++ *            Update support reiserfs version 3.5.28
++ * Modified:  10.01.2003 Yury Umanets <umka@namesys.com>
++ *            Added reiserfs 3.6.x support.
++ *
++ */
++
++#ifndef _GM_reiserfs_H
++#define _GM_reiserfs_H
++
++/* imported from asm/types.h */
++typedef __signed__ char __s8;
++typedef unsigned char __u8;
++
++typedef __signed__ short __s16;
++typedef unsigned short __u16;
++
++typedef __signed__ int __s32;
++typedef unsigned int __u32;
++
++/*
++ * taken from ReiserFS v3.5.28, v3.6.x. Reiserfs Copyright 1996-2000 Hans Reiser
++ */
++
++#define REISERFS_SUPER_V35_MAGIC	"ReIsErFs"
++#define REISERFS_SUPER_V36_MAGIC	"ReIsEr2Fs"
++
++#define REISERFS_FIRST_BLOCK		64
++#define REISERFS_VALID_FS		1
++#define REISERFS_ERROR_FS		2
++#define REISERFS_MIN_BLOCK_AMOUNT	100
++
++struct reiserfs_super_block_v35
++{
++	__u32 s_block_count;		/* blocks count         */
++	__u32 s_free_blocks;		/* free blocks count    */
++	__u32 s_root_block;		/* root block number    */
++	__u32 s_journal_block;		/* journal block number    */
++	__u32 s_journal_dev;		/* journal device number  */
++	__u32 s_orig_journal_size;	/* size of the journal on FS creation.  used to make sure they don't overflow it */
++	__u32 s_journal_trans_max;	/* max number of blocks in a transaction.  */
++	__u32 s_journal_block_count;	/* total size of the journal. can change over time  */
++	__u32 s_journal_max_batch;	/* max number of blocks to batch into a trans */
++	__u32 s_journal_max_commit_age;	/* in seconds, how old can an async commit be */
++	__u32 s_journal_max_trans_age;	/* in seconds, how old can a transaction be */
++	__u16 s_blocksize;		/* block size           */
++	__u16 s_oid_maxsize;		/* max size of object id array, see get_objectid() commentary  */
++	__u16 s_oid_cursize;		/* current size of object id array */
++	__u16 s_state;			/* valid or error       */
++	char s_magic[12];		/* reiserfs magic string indicates that file system is reiserfs */
++	__u32 s_hash_function_code;	/* indicate, what hash fuction is being use to sort names in a directory*/
++	__u16 s_tree_height;		/* height of disk tree */
++	__u16 s_bmap_nr;		/* amount of bitmap blocks needed to address each block of file system */
++	__u16 s_reserved;
++};
++
++#define SB_V35_SIZE (sizeof(struct reiserfs_super_block_v35))
++
++struct reiserfs_super_block_v36 {
++	struct reiserfs_super_block_v35 s_v35;
++	__u32 s_inode_generation; 
++	__u32 s_flags;
++	char s_uuid[16];
++	char s_label[16];
++	char s_unused[88];
++};
++
++#define SB_V36_SIZE (sizeof(struct reiserfs_super_block_v36))
++
++#endif /* _GM_REISERFS_H */
+diff -Naurp gpart.orig/src/gmodules.c gpart/src/gmodules.c
+--- gpart.orig/src/gmodules.c	2001-01-30 17:01:00.000000000 +0000
++++ gpart/src/gmodules.c	2008-09-19 06:13:18.000000000 +0000
+@@ -154,7 +154,7 @@ void g_mod_addinternals()
+ 	GMODINS(bsddl);
+ 	GMODINS(lswap);
+ 	GMODINS(qnx4);
+-	GMODINS(rfs);
++	GMODINS(reiserfs);
+ 	GMODINS(ntfs);
+ 	GMODINS(hpfs);
+ 	GMODINS(minix);
+diff -Naurp gpart.orig/src/gmodules.h gpart/src/gmodules.h
+--- gpart.orig/src/gmodules.h	2001-01-30 17:00:47.000000000 +0000
++++ gpart/src/gmodules.h	2008-09-19 06:13:18.000000000 +0000
+@@ -63,7 +63,7 @@ g_module *g_mod_setweight(char *,float);
+ 
+ GMODDECL(bsddl); GMODDECL(ext2); GMODDECL(fat);
+ GMODDECL(hpfs); GMODDECL(lswap); GMODDECL(ntfs);
+-GMODDECL(s86dl); GMODDECL(minix); GMODDECL(rfs);
++GMODDECL(s86dl); GMODDECL(minix); GMODDECL(reiserfs);
+ GMODDECL(hmlvm); GMODDECL(qnx4); GMODDECL(beos);
+ GMODDECL(xfs);
+ 
+diff -Naurp gpart.orig/src/l64seek.c gpart/src/l64seek.c
+--- gpart.orig/src/l64seek.c	2000-12-13 22:54:11.000000000 +0000
++++ gpart/src/l64seek.c	2008-09-19 06:13:18.000000000 +0000
+@@ -25,30 +25,11 @@ static struct
+ } ostck[OSTACKLEN];
+ static int		osptr = -1;
+ 
+-#if defined(__linux__) && defined(__i386__)
+-_syscall5(int,_llseek,uint,fd,ulong,hi,ulong,lo,loff_t *,res,uint,wh)
+-#endif
+-
+-
+-
+ off64_t l64seek(int fd,off64_t offset,int whence)
+ {
+ 	off64_t		ret = (off64_t)-1;
+ 
+-#if defined(__linux__) && defined(__i386__)
+-	int		iret;
+-	unsigned long	ohi, olo;
+-
+-	ohi = (unsigned long)((offset >> 32) & 0xFFFFFFFF);
+-	olo = (unsigned long)(offset & 0xFFFFFFFF);
+-	iret = _llseek(fd,ohi,olo,&ret,whence);
+-	if (iret == -1)
+-		ret = (off64_t)-1;
+-#endif
+-
+-#if defined(__FreeBSD__) || (defined(__linux__) && defined(__alpha__))
+ 	ret = lseek(fd,offset,whence);
+-#endif
+ 
+ 	return (ret);
+ }
+diff -Naurp gpart.orig/src/l64seek.h gpart/src/l64seek.h
+--- gpart.orig/src/l64seek.h	2000-12-13 22:56:07.000000000 +0000
++++ gpart/src/l64seek.h	2008-09-19 06:13:18.000000000 +0000
+@@ -17,6 +17,8 @@
+ #ifndef _L64SEEK_H
+ #define _L64SEEK_H
+ 
++#include <sys/stat.h>
++#include <sys/types.h>
+ #include <unistd.h>
+ 
+ /*
+@@ -25,19 +27,7 @@
+  * offsets.
+  */
+ 
+-
+-#if defined(__linux__)
+-#	include <linux/unistd.h>
+-#	include <sys/types.h>
+-	typedef int64_t off64_t;
+-#endif
+-
+-
+-#if defined(__FreeBSD__)
+-	typedef off_t off64_t;
+-#endif
+-
+-
++typedef loff_t off64_t;
+ typedef off64_t s64_t;
+ 
+ off64_t l64seek(int fd, off64_t offset, int whence);
+@@ -45,5 +35,4 @@ off64_t l64seek(int fd, off64_t offset, 
+ int l64opush(int);
+ s64_t l64opop(int);
+ 
+-
+ #endif
